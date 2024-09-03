@@ -644,6 +644,48 @@ function pauseGameButtonClick() {
   pauseTimer = !pauseTimer;
 }
 
+
+function showHintPopup(message) {
+  alert(message); // Simple alert for demonstration
+  // For a more sophisticated UI, you could create a modal dialog here
+}
+
+function provideHint() {
+  if (hintsUsed >= MAX_HINTS) {
+      showHintPopup("You have used all your hints.");
+      return;
+  }
+
+  // Find the first empty cell
+  for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+          if (puzzle[i][j] === "0") {
+              // Check if there's a hint for this cell
+              var hintValue = solution[i][j];
+              if (hintValue) {
+                  // Show the hint in the popup
+                  showHintPopup(`Hint: Cell (${i + 1}, ${j + 1}) should be ${hintValue}`);
+                  hintsUsed++;
+                  updateRemainingTable(); // Update hint display
+                  return;
+              }
+          }
+      }
+  }
+
+  showHintPopup("No hints available at this moment.");
+}
+
+function updateRemainingTable() {
+  // Update hint display
+  var hintItem = document.getElementById("hint-count");
+  if (hintItem) {
+      hintItem.innerText = `Hints Remaining: ${MAX_HINTS - hintsUsed}`;
+  }
+}
+var hintsUsed = 0; // Initialize the hint counter
+const MAX_HINTS = 3; // Maximum number of hints allowed
+
 // check grid if correct
 function checkButtonClick() {
   // check if game is started
@@ -752,9 +794,12 @@ function SurrenderButtonClick() {
 }
 
 // hint
+var hintsUsed = 0; // Initialize the hint counter
+
+
 function hintButtonClick() {
   if (gameOn) {
-    // get list of empty cells and list of wrong cells
+    // Get list of empty cells and list of wrong cells
     var empty_cells_list = [];
     var wrong_cells_list = [];
     for (var i = 0; i < 9; i++) {
@@ -767,6 +812,62 @@ function hintButtonClick() {
         }
       }
     }
+
+    // Provide hint if there are empty cells
+    if (hintsUsed < MAX_HINTS) {
+      if (empty_cells_list.length > 0) {
+        // Get the first empty cell
+        var cell = empty_cells_list[0];
+        var row = cell[0];
+        var col = cell[1];
+        var hintValue = solution[row][col];
+        
+        // Show hint in the popup
+        showHintPopup(`Hint: Cell (${row + 1}, ${col + 1}) should be ${hintValue}`);
+        
+        // Optionally fill the cell with the hint value
+        table.rows[row].cells[col].getElementsByTagName("input")[0].value = hintValue;
+
+        hintsUsed++;
+        updateRemainingTable(); // Update hint display
+      } else if (wrong_cells_list.length > 0) {
+        // Provide hint for wrong cells
+        var cell = wrong_cells_list[0];
+        var row = cell[0];
+        var col = cell[1];
+        var hintValue = solution[row][col];
+        
+        // Show hint in the popup
+        showHintPopup(`Hint: Cell (${row + 1}, ${col + 1}) is incorrect. It should be ${hintValue}`);
+        
+        // Optionally highlight the incorrect cell
+        table.rows[row].cells[col].getElementsByTagName("input")[0].classList.add("red");
+
+        hintsUsed++;
+        updateRemainingTable(); // Update hint display
+      } else {
+        // No empty or wrong cells
+        showHintPopup("No hints available at this moment.");
+      }
+    } else {
+      showHintPopup("You have used all your hints.");
+    }
+  }
+}
+
+function showHintPopup(message) {
+  alert(message); // Simple alert for demonstration
+  // For a more sophisticated UI, you could create a modal dialog here
+}
+
+function updateRemainingTable() {
+  // Update hint display
+  var hintItem = document.getElementById("hint-count");
+  if (hintItem) {
+    hintItem.innerText = `Hints Remaining: ${MAX_HINTS - hintsUsed}`;
+  }
+}
+
 
     // check if gird is solved if so stop the game
     if (empty_cells_list.length === 0 && wrong_cells_list.length === 0) {
@@ -818,8 +919,7 @@ function hintButtonClick() {
         count++;
       }, i * 750);
     }
-  }
-}
+  
 
 function showDialogClick(dialogId) {
   // to hide navigation bar if it opened
